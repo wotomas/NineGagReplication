@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="He almost got my nachos..."
+        android:id="@+id/title_textview"
+        android:textSize="22sp"
+        android:textStyle="bold"
+        android:layout_marginTop="5dp"
+        android:layout_marginBottom="5dp" />
+
+    <ImageView
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/gag_imageview"
+        android:src="@drawable/gag1"
+        android:scaleType="fitStart"
+        android:layout_gravity="center_horizontal"
+        android:adjustViewBounds="true" />
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="5dp"
+        android:layout_marginBottom="5dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="491 Points"
+            android:id="@+id/points_textview"
+            android:layout_marginRight="10dp"
+            android:textSize="18sp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="9 Commnets"
+            android:id="@+id/comments_textview"
+            android:textSize="18sp" />
+    </LinearLayout>
+
+    <RelativeLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content">
+
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true">
+
+            <ImageButton
+                android:layout_width="70dp"
+                android:layout_height="wrap_content"
+                android:id="@+id/upButton"
+                android:src="@drawable/arrow"
+                android:layout_margin="5dp" />
+
+            <ImageButton
+                android:layout_width="70dp"
+                android:layout_height="wrap_content"
+                android:id="@+id/downButton"
+                android:src="@drawable/arroww"
+                android:layout_margin="5dp" />
+
+            <ImageButton
+                android:layout_width="70dp"
+                android:layout_height="wrap_content"
+                android:id="@+id/commentButton"
+                android:src="@drawable/comment"
+                android:layout_margin="5dp" />
+
+        </LinearLayout>
+
+        <ImageButton
+            android:layout_width="70dp"
+            android:layout_height="wrap_content"
+            android:id="@+id/shareButton"
+            android:layout_gravity="right"
+            android:src="@drawable/share"
+            android:layout_alignParentRight="true"
+            android:layout_margin="5dp" />
+    </RelativeLayout>
+
+</LinearLayout>
