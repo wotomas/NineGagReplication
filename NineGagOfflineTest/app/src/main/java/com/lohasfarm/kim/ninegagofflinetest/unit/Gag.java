@@ -5,7 +5,7 @@ import java.util.Date;
 /**
  * Created by kim on 2015-11-18.
  */
-public class Gag {
+public class Gag implements Comparable<Gag> {
     //A Gag has
     //      ID        IMG         TITLE       POINTS          COMMENTS
     //ex)   1          1         If Four..      1152            458
@@ -83,6 +83,11 @@ public class Gag {
 
     public void set_id(int _id) {
         this._id = _id;
+    }
+
+    @Override
+    public int compareTo(Gag another) {
+        return another.get_postDate().compareTo(this.get_postDate());
     }
 
 }
