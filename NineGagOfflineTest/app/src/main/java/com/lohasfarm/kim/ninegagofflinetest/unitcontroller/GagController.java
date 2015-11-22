@@ -6,8 +6,8 @@ import com.lohasfarm.kim.ninegagofflinetest.unit.Gag;
 import com.lohasfarm.kim.ninegagofflinetest.unitstorage.GagStorage;
 import com.lohasfarm.kim.ninegagofflinetest.unitstorage.disk.JsonStorable;
 
+import java.util.ArrayList;
 import java.util.Date;
-import java.util.LinkedList;
 import java.util.Random;
 
 /**
@@ -26,6 +26,10 @@ public class GagController {
             _instance = new GagController();
         }
         return _instance;
+    }
+
+    public void sortGags(Context context) {
+        _gagStorage.sortAccordingly(context);
     }
 
     //Initialize Gag Storage
@@ -92,16 +96,16 @@ public class GagController {
         _gagStorage.addGag(gag, context);
     }
 
-    public LinkedList<Gag> getList(int start, int end) {
-        return _gagStorage.get_gagList(start, end);
+    public ArrayList<Gag> getList(int type, int start, int end) {
+        return _gagStorage.get_gagList(type, start, end);
     }
 
-    public LinkedList<Gag> getEntireList() {
-        return _gagStorage.getEntireList();
+    public int getLastLoadedGagNumber(int type) {
+        return _gagStorage.get_lastLoadedGagNumber(type);
     }
-/**
-    public int getLastLoadedGagNumber() {
-        return _gagStorage.get_lastLoadedGagNumber();
+
+    public int getTotalSize() {
+        return _gagStorage.get_totalSIze();
     }
-**/
+
 }
