@@ -29,6 +29,11 @@ public class GagAdapter extends BaseAdapter {
         _layout = layout;
     }
 
+    public void appendToList(ArrayList<Gag> input) {
+        _arrayList.addAll(input);
+        notifyDataSetChanged();
+    }
+
     @Override
     public int getCount() {
         return _arrayList.size();
