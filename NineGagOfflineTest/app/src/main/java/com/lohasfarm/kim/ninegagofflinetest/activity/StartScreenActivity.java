@@ -1,6 +1,5 @@
 package com.lohasfarm.kim.ninegagofflinetest.activity;
 
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -10,6 +9,7 @@ import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -18,15 +18,19 @@ import android.view.ViewGroup;
 import android.widget.ListView;
 
 import com.lohasfarm.kim.ninegagofflinetest.R;
+import com.lohasfarm.kim.ninegagofflinetest.adapter.EndlessScrollListener;
 import com.lohasfarm.kim.ninegagofflinetest.adapter.GagAdapter;
-import com.lohasfarm.kim.ninegagofflinetest.fakeRemoteService.FakeRemoteService;
+import com.lohasfarm.kim.ninegagofflinetest.adapter.HEndlessScrollListener;
+import com.lohasfarm.kim.ninegagofflinetest.adapter.HListAdapter;
 import com.lohasfarm.kim.ninegagofflinetest.unit.Gag;
 import com.lohasfarm.kim.ninegagofflinetest.unitcontroller.GagController;
 import com.lohasfarm.kim.ninegagofflinetest.unitstorage.GagStorage;
+import com.lohasfarm.kim.ninegagofflinetest.unitstorage.disk.FileManager;
 
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.Locale;
+
+import it.sephiroth.android.library.widget.HListView;
 
 public class StartScreenActivity extends ActionBarActivity implements ActionBar.TabListener  {
 
@@ -40,7 +44,6 @@ public class StartScreenActivity extends ActionBarActivity implements ActionBar.
      */
     SectionsPagerAdapter mSectionsPagerAdapter;
     private static GagStorage _gagStorage = new GagStorage();
-    private static LinkedList<Gag> _gagList = new LinkedList<Gag>();
     private final String _TAG = "StartScreenActivity";
 
     /**
@@ -52,16 +55,18 @@ public class StartScreenActivity extends ActionBarActivity implements ActionBar.
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_start_screen);
-        GagController.getInstance().initGagStorage(_gagStorage, this);
         //FileManager.getInstance().deleteGagJson(this);
+        GagController.getInstance().initGagStorage(_gagStorage, this);
 
         /**
         for(int i = 0; i< 50; i++) {
             Gag newGag = GagController.getInstance().createRandomPost(i);
             GagController.getInstance().addGag(newGag, this);
         }
-        **/
+         **/
 
+
+        GagController.getInstance().sortGags(this);
 
         // Set up the action bar.
         final ActionBar actionBar = getSupportActionBar();
@@ -83,6 +88,11 @@ public class StartScreenActivity extends ActionBarActivity implements ActionBar.
             @Override
             public void onPageSelected(int position) {
                 actionBar.setSelectedNavigationItem(position);
+                if(position == 0) {
+                    //first Fragment
+                } else {
+
+                }
             }
         });
 
@@ -189,9 +199,7 @@ public class StartScreenActivity extends ActionBarActivity implements ActionBar.
          */
         private static final String ARG_SECTION_NUMBER = "section_number";
         private int _page;
-        private LinkedList<Gag> _gagList = new LinkedList<Gag>();
-        private AsyncTask<Void, Void, ArrayList<Gag>> _fetchAsyncTask;
-        private FakeRemoteService _fakeRemoteService;
+        private HListView _headerHorizontalListView;
 
         /**
          * Returns a new instance of this fragment for the given section
@@ -215,8 +223,7 @@ public class StartScreenActivity extends ActionBarActivity implements ActionBar.
         }
 
         @Override
-        public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                                 Bundle savedInstanceState) {
+        public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
             if(_page == 1) {
                 //hot page
                 View rootView = inflater.inflate(R.layout.fragment_hot_screen, container, false);
@@ -224,29 +231,107 @@ public class StartScreenActivity extends ActionBarActivity implements ActionBar.
             } else if(_page == 2) {
                 //trending page
                 View rootView = inflater.inflate(R.layout.fragment_trending_screen, container, false);
-                return rootView;
+                return getFragmentView(_page, rootView);
             } else if(_page == 3) {
                 //fresh page
                 View rootView = inflater.inflate(R.layout.fragment_fresh_screen, container, false);
-                return rootView;
+                return getFragmentView(_page, rootView);
             } else if(_page == 4) {
                 //top page
                 View rootView = inflater.inflate(R.layout.fragment_top_screen, container, false);
-                return rootView;
+                return getFragmentView(_page, rootView);
             }
             return null;
         }
 
-        private View getHotScreenView(View rootView) {
+        private View getFragmentView(int input, View rootView) {
+            final int type = input;
             ArrayList<Gag> array = new ArrayList<Gag>();
-            _gagList = GagController.getInstance().getEntireList();
-            for(Gag newGag: _gagList) {
-                array.add(newGag);
+            array = GagController.getInstance().getList(type, 0,10);
+            Log.d("FragmentCheck", "Loaded Fragment is type " + Integer.toString(type) + " Loaded Array is: " + array.toString());
+            final GagAdapter adapter = new GagAdapter(rootView.getContext(), R.layout.custom_row_gag, array);
+            ListView listView = (ListView)rootView.findViewById(R.id.verticalTrendingList);
+            try {
+                if(type == 2) {
+                    listView = (ListView)rootView.findViewById(R.id.verticalTrendingList);
+                } else if(type == 3) {
+                    listView = (ListView)rootView.findViewById(R.id.verticalFreshList);
+                } else {
+                    listView = (ListView)rootView.findViewById(R.id.verticalTopList);
+                }
+            } catch(Exception e) {
+                Log.e("ListView", "Listview Does not exsist", e);
             }
 
-            GagAdapter adapter = new GagAdapter(this.getActivity(), R.layout.custom_row_gag, array);
-            ListView listView = (ListView)rootView.findViewById(R.id.verticalList);
             listView.setAdapter(adapter);
+            listView.setOnScrollListener(new EndlessScrollListener() {
+                @Override
+                public boolean onLoadMore(int page, int totalItemsCount) {
+                    Log.d("ScrollListenerTest", "Gag Total Size: " + Integer.toString(GagController.getInstance().getTotalSize()) + " Current Page: " + Integer.toString(page) + " Total Item Count: " + Integer.toString(totalItemsCount));
+
+                    if(GagController.getInstance().getTotalSize() > totalItemsCount) {
+                        int start = GagController.getInstance().getLastLoadedGagNumber(type);
+                        int end = GagController.getInstance().getLastLoadedGagNumber(type) + 10;
+                        adapter.appendToList(GagController.getInstance().getList(type, start, end));
+                        return true;
+                    } else {
+                        return false;
+                    }
+
+
+                }
+            });
+
+            return rootView;
+        }
+
+        private View getHotScreenView(View rootView) {
+            ArrayList<Gag> array = new ArrayList<Gag>();
+            array = GagController.getInstance().getList(0, 0,10);
+
+            ArrayList<Gag> horizontalArray = new ArrayList<Gag>();
+            horizontalArray = GagController.getInstance().getList(1, 0,10);
+
+            final GagAdapter adapter = new GagAdapter(rootView.getContext(), R.layout.custom_row_gag, array);
+            final HListAdapter horizontalAdapter = new HListAdapter(this.getActivity(), R.layout.custom_horizontal_row_gag, horizontalArray);
+            final ListView listView = (ListView)rootView.findViewById(R.id.verticalHotList);
+            _headerHorizontalListView = new HListView(rootView.getContext());
+            _headerHorizontalListView.setAdapter(horizontalAdapter);
+            _headerHorizontalListView.setOnScrollListener(new HEndlessScrollListener() {
+                                                              @Override
+                                                              public boolean onLoadMore(int page, int totalItemsCount) {
+                                                                  Log.d("HScrollListenerTest", "Gag Total Size: " + Integer.toString(GagController.getInstance().getTotalSize()) + " Current Page: " + Integer.toString(page) + " Total Item Count: " + Integer.toString(totalItemsCount));
+
+                                                                  if(GagController.getInstance().getTotalSize() > totalItemsCount) {
+                                                                      int start = GagController.getInstance().getLastLoadedGagNumber(1);
+                                                                      int end = GagController.getInstance().getLastLoadedGagNumber(1) + 10;
+                                                                      horizontalAdapter.appendToList(GagController.getInstance().getList(1, start, end));
+                                                                      return true;
+                                                                  } else {
+                                                                      return false;
+                                                                  }
+                                                              }
+                                                          });
+
+            listView.addHeaderView(_headerHorizontalListView);
+            listView.setAdapter(adapter);
+            listView.setOnScrollListener(new EndlessScrollListener() {
+                @Override
+                public boolean onLoadMore(int page, int totalItemsCount) {
+                    Log.d("ScrollListenerTest", "Gag Total Size: " + Integer.toString(GagController.getInstance().getTotalSize()) + " Current Page: " + Integer.toString(page) + " Total Item Count: " + Integer.toString(totalItemsCount));
+
+                    if(GagController.getInstance().getTotalSize() > totalItemsCount) {
+                        int start = GagController.getInstance().getLastLoadedGagNumber(0);
+                        int end = GagController.getInstance().getLastLoadedGagNumber(0) + 10;
+                        adapter.appendToList(GagController.getInstance().getList(0, start, end));
+                        return true;
+                    } else {
+                        return false;
+                    }
+
+
+                }
+            });
 
             return rootView;
         }
